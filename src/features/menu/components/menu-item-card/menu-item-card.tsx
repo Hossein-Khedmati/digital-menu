@@ -2,12 +2,11 @@
 
 import Image from "next/image";
 import { IconPlus, IconMinus, IconToolsKitchen2 } from "@tabler/icons-react";
-import { useCartStore } from "@/features/cart/store/cart-store";
+import { useCartStore } from "../../../../store/cart-store";
 import { formatPrice, cn, toPersianNumber } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Props } from "./types";
-
 
 export function MenuItemCard({ item }: Props) {
   const { items, addItem, increaseQty, decreaseQty } = useCartStore();
@@ -54,10 +53,7 @@ export function MenuItemCard({ item }: Props) {
 
         {/* نشان تخفیف */}
         {hasDiscount && (
-          <Badge
-          variant="destructive"
-            className="absolute top-3 right-3"
-          >
+          <Badge variant="destructive" className="absolute top-3 right-3">
             تخفیف %
           </Badge>
         )}
@@ -79,9 +75,17 @@ export function MenuItemCard({ item }: Props) {
       </div>
 
       {/* اطلاعات */}
-      <div className="flex flex-col flex-1 p-4 gap-3 bg-brand dark:bg-transparent">
-        <div className="flex-1">
-          <h3 className="font-bold text-ui-text text-sm leading-snug line-clamp-1.5">
+      <div className="relative flex flex-col flex-1 p-4 gap-3 bg-brand dark:bg-transparent overflow-hidden">
+        {/* Shining effect line */}
+        <div
+          className="absolute inset-0 -translate-x-full group-hover:translate-x-full 
+                     transition-transform duration-1000 ease-in-out
+                     bg-linear-to-r from-transparent via-white/30 dark:via-white/8 to-transparent
+                      skew-x-35"
+        />
+
+        <div className="flex-1 relative z-10">
+          <h3 className="font-bold text-ui-text text-sm leading-snug line-clamp-2">
             {item.name}
           </h3>
           {item.description && (
@@ -95,7 +99,7 @@ export function MenuItemCard({ item }: Props) {
         </div>
 
         {/* قیمت + کنترل */}
-        <div className="flex items-center justify-between gap-2 max-sm:flex-col max-sm:items-start">
+        <div className="relative z-10 flex items-center justify-between gap-2 max-sm:flex-col max-sm:items-start">
           <div className="flex flex-col">
             {hasDiscount && (
               <span className="text-xs text-ui-text/50 line-through">

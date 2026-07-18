@@ -17,7 +17,7 @@ export async function upsertMenuItemAction(
 }> {
   const parsed = menuItemSchema.safeParse(formData)
   if (!parsed.success) {
-    const firstError = parsed.error.errors[0]
+    const firstError = parsed.error.issues[0]
     return { success: false, error: firstError.message }
   }
 
@@ -74,6 +74,14 @@ export async function deleteMenuItemAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'دسترسی غیرمجاز.' }
 
+  // ✅ fetch image_url before deleting the row
+  const { data: existing } = await supabase
+    .from('menu_items')
+    .select('image_url')
+    .eq('id', menuItemId)
+    .eq('restaurant_id', restaurantId)
+    .single()
+
   const { error } = await supabase
     .from('menu_items')
     .delete()
@@ -82,22 +90,24 @@ export async function deleteMenuItemAction(
 
   if (error) return { success: false, error: 'خطا در حذف آیتم.' }
 
+  // ✅ delete image from bucket after row is deleted
+  if (existing?.image_url) {
+    await deleteMenuItemImageFromStorage(existing.image_url)
+  }
+
   revalidatePath('/admin/dashboard')
   return { success: true }
 }
 
 export async function uploadMenuItemImage(
-  file:        File,
-  userId:      string,
+  file:         File,
+  userId:       string,
   oldImageUrl?: string | null
 ): Promise<{ url: string | null; error: string | null }> {
   const supabase = await createClient()
 
   if (oldImageUrl) {
-    const oldPath = oldImageUrl.split('/menu-item-images/')[1]
-    if (oldPath) {
-      await supabase.storage.from('menu-item-images').remove([oldPath])
-    }
+    await deleteMenuItemImageFromStorage(oldImageUrl)
   }
 
   const ext      = file.name.split('.').pop()
@@ -114,4 +124,38 @@ export async function uploadMenuItemImage(
     .getPublicUrl(fileName)
 
   return { url: data.publicUrl, error: null }
+}
+
+
+export async function clearMenuItemImageAction(
+  imageUrl:     string,
+  menuItemId:   string,
+  restaurantId: string,
+): Promise<{ success: boolean }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false }
+
+  await supabase
+    .from('menu_items')
+    .update({ image_url: null })
+    .eq('id', menuItemId)
+    .eq('restaurant_id', restaurantId)
+
+  await deleteMenuItemImageFromStorage(imageUrl)
+
+  revalidatePath('/admin/dashboard')
+  return { success: true }
+}
+
+async function deleteMenuItemImageFromStorage(imageUrl: string): Promise<void> {
+  try {
+    const supabase = await createClient()
+    const path = imageUrl.split('/menu-item-images/')[1]
+    if (path) {
+      await supabase.storage.from('menu-item-images').remove([path])
+    }
+  } catch {
+    console.warn('[deleteMenuItemImageFromStorage] failed:', imageUrl)
+  }
 }

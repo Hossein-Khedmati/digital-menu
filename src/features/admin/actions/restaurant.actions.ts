@@ -17,7 +17,7 @@ export async function updateRestaurantAction(
 }> {
   const parsed = restaurantSchema.safeParse(formData);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0].message };
+    return { success: false, error: parsed.error.issues[0].message };
   }
 
   const supabase = await createClient();
@@ -34,6 +34,9 @@ export async function updateRestaurantAction(
     social_links: parsed.data.social_links ?? {},
     is_active: parsed.data.is_active,
     brand_color: parsed.data.brand_color,
+    working_hours: parsed.data.working_hours ?? {},
+    latitude: parsed.data.latitude ?? null,
+    longitude: parsed.data.longitude ?? null,
     ...(logoUrl !== undefined && { logo_url: logoUrl }),
     ...(bannerUrl !== undefined && { banner_url: bannerUrl }),
   };

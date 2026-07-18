@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { X } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
 type DrawerProps = {
@@ -75,7 +75,7 @@ export function Drawer({
                        transition-all duration-150"
             aria-label="بستن"
           >
-            <X className="h-4 w-4" />
+            <IconX className="h-4 w-4" />
           </button>
         </div>
 

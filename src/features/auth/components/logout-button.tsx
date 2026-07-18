@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { LogOut } from 'lucide-react'
+import { IconLogout } from '@tabler/icons-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 
@@ -26,7 +26,7 @@ export function LogoutButton() {
       onClick={handleLogout}
       className="text-red-600 hover:text-red-600 hover:bg-red-100 cursor-pointer"
     >
-      <LogOut className="h-4 w-4" />
+      <IconLogout className="h-4 w-4" />
       <span>خروج</span>
     </Button>
   )

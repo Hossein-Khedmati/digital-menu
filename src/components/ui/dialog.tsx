@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
 const Dialog = DialogPrimitive.Root;
@@ -53,7 +53,7 @@ const DialogContent = React.forwardRef<
           "focus:outline-none focus:ring-2 focus:ring-brand",
         )}
       >
-        <X className="h-4 w-4" />
+        <IconX className="h-4 w-4" />
         <span className="sr-only">بستن</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>

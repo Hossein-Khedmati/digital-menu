@@ -2,7 +2,13 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
+import {
+  IconMail,
+  IconLock,
+  IconEye,
+  IconEyeOff,
+  IconAlertCircle,
+} from "@tabler/icons-react";
 import { useState } from 'react'
 
 import { loginSchema, type LoginFormValues } from '../schemas'
@@ -48,14 +54,14 @@ export function LoginForm() {
             'animate-in fade-in slide-in-from-top-1 duration-300'
           )}
         >
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+          <IconAlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
           <span>{serverError}</span>
         </div>
       )}
       <div className="space-y-2">
         <Label htmlFor="email">ایمیل</Label>
         <div className="relative">
-          <Mail
+          <IconMail
             className={cn(
               'absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4',
               errors.email ? 'text-red-400' : 'text-gray-400'
@@ -78,7 +84,7 @@ export function LoginForm() {
             className="flex items-center gap-1.5 text-xs text-red-600
                        animate-in fade-in slide-in-from-top-1 duration-200"
           >
-            <AlertCircle className="h-3 w-3" />
+            <IconAlertCircle className="h-3 w-3" />
             {errors.email.message}
           </p>
         )}
@@ -87,7 +93,7 @@ export function LoginForm() {
       <div className="space-y-2">
         <Label htmlFor="password">رمز عبور</Label>
         <div className="relative">
-          <Lock
+          <IconLock
             className={cn(
               'absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4',
               errors.password ? 'text-red-400' : 'text-gray-400'
@@ -113,8 +119,8 @@ export function LoginForm() {
             aria-label={showPassword ? 'مخفی کردن رمز عبور' : 'نمایش رمز عبور'}
           >
             {showPassword
-              ? <EyeOff className="h-4 w-4" />
-              : <Eye className="h-4 w-4" />
+              ? <IconEyeOff className="h-4 w-4" />
+              : <IconEye className="h-4 w-4" />
             }
           </button>
         </div>
@@ -124,7 +130,7 @@ export function LoginForm() {
             className="flex items-center gap-1.5 text-xs text-red-600
                        animate-in fade-in slide-in-from-top-1 duration-200"
           >
-            <AlertCircle className="h-3 w-3" />
+            <IconAlertCircle className="h-3 w-3" />
             {errors.password.message}
           </p>
         )}

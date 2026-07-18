@@ -4,15 +4,15 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CategoryBar } from "@/features/menu/components/category-bar/category-bar";
 import { SearchAndSort } from "@/features/menu/components/search-and-sort/search-and-sort";
-import { MenuItemCard } from "@/features/menu/components/menu-item-card/menu-item-card";
 import { CartDrawer } from "@/features/cart/components/cart-drawer";
-import { ThemeToggle } from "@/components/ui/theme-switcher";
-import { IconHome, IconToolsKitchen2Off } from "@tabler/icons-react";
+import { ThemeToggle } from "@/components/shared/theme-switcher";
+import { IconHome } from "@tabler/icons-react";
 import Image from "next/image";
 import { Suspense } from "react";
 
-import { MenuGrid } from "./menu-grid";
-import { MenuGridSkeleton } from "./menu-grid-skeleton";
+import { MenuGrid } from "@/features/menu/components/menu-grid/menu-grid";
+import { MenuGridSkeleton } from "@/features/menu/components/menu-grid/menu-grid-skeleton";
+import { toPersianNumber } from "@/lib/utils";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -102,10 +102,8 @@ export default async function MenuPage({ params, searchParams }: Props) {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-5 space-y-5">
-        {/* ── جستجو و مرتب‌سازی ── */}
         <SearchAndSort />
 
-        {/* ── نوار دسته‌بندی ── */}
         <CategoryBar
           categories={categories}
           activeCategory={cat ?? null}
@@ -113,9 +111,11 @@ export default async function MenuPage({ params, searchParams }: Props) {
           searchParams={currentParams}
         />
 
-        {/* Search Result */}
-
-        {q && <p className="text-sm text-gray-500">نتایج جستجو برای «{q}»</p>}
+        {q && (
+          <p className="text-sm text-gray-500">
+            نتایج جستجو برای «{toPersianNumber(q)}»
+          </p>
+        )}
 
         <Suspense key={`${q}-${sort}-${cat}`} fallback={<MenuGridSkeleton />}>
           <MenuGrid
@@ -128,7 +128,6 @@ export default async function MenuPage({ params, searchParams }: Props) {
         </Suspense>
       </div>
 
-      {/* ── سبد خرید شناور ── */}
       <CartDrawer />
     </div>
   );
