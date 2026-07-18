@@ -10,7 +10,7 @@ import {
   IconToolsKitchen2,
   IconClipboardList,
 } from "@tabler/icons-react";
-import { useCartStore } from "../store/cart-store";
+import { useCartStore } from "../../../store/cart-store";
 import { Drawer } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { formatPrice, toPersianNumber, cn } from "@/lib/utils";
@@ -38,7 +38,7 @@ export function CartDrawer() {
     <>
       {/* ── دکمه شناور سبد خرید ── */}
       <Button
-      variant="outline"
+        variant="outline"
         onClick={() => setOpen(true)}
         className={cn(
           "fixed bottom-6 left-6 z-40",

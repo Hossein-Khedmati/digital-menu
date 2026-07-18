@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { UtensilsCrossed, Shield } from "lucide-react";
+import { IconToolsKitchen2, IconShieldLock } from "@tabler/icons-react";
 import { LoginForm } from "@/features/auth/components/loginF-form";
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export default function LoginPage() {
                        rounded-2xl bg-brand-600 shadow-lg shadow-brand-200
                        mb-4 border border-black"
           >
-            <UtensilsCrossed className="h-8 w-8 text-black" />
+            <IconToolsKitchen2 className="h-8 w-8 text-black" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">منوی دیجیتال</h1>
           <p className="mt-1 text-sm text-gray-500">پنل مدیریت رستوران</p>
@@ -32,7 +32,7 @@ export default function LoginPage() {
                      p-8 shadow-xl shadow-gray-200"
         >
           <div className="flex items-center gap-2 mb-6">
-            <Shield className="h-5 w-5 text-brand-600" />
+            <IconShieldLock className="h-5 w-5 text-brand-600" />
             <h2 className="text-lg font-semibold text-gray-800">
               ورود به حساب کاربری
             </h2>

@@ -12,7 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { cn, toPersianNumber } from "@/lib/utils";
 import Link from "next/link";
-import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 import { Button } from "@/components/ui/button";
 
 type Tab = "profile" | "categories" | "items";

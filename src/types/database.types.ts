@@ -135,6 +135,8 @@ export type Database = {
           updated_at: string;
           working_hours: Json | null;
           brand_color: string | null;
+          longitude: number | null;
+          latitude: number | null;
         };
         Insert: {
           address?: string | null;
@@ -152,6 +154,8 @@ export type Database = {
           updated_at?: string;
           working_hours?: Json | null;
           brand_color: string | null;
+          latitude: number | null;
+          longitude: number | null;
         };
         Update: {
           address?: string | null;
@@ -169,6 +173,8 @@ export type Database = {
           updated_at?: string;
           working_hours?: Json | null;
           brand_color: string | null;
+          latitude: number | null;
+          longitude: number | null;
         };
         Relationships: [];
       };

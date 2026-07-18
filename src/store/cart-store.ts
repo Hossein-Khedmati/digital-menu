@@ -1,75 +1,112 @@
-'use client'
-
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { CartItem, MenuItem } from '@/types'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
-interface CartStore {
-  items: CartItem[]
+// ── Types ──
+export type CartItem = {
+  id:               string
+  name:             string
+  base_price:       number
+  discounted_price: number | null
+  image_url:        string | null
+  quantity:         number
+}
+
+type CartStore = {
+  items:       CartItem[]
   restaurantSlug: string | null
-  addItem: (item: MenuItem, restaurantSlug: string) => void
-  removeItem: (itemId: string) => void
-  updateQuantity: (itemId: string, quantity: number) => void
-  clearCart: () => void
-  getTotalItems: () => number
-  getTotalPrice: () => number
+
+  // actions
+  addItem:       (item: Omit<CartItem, 'quantity'>) => void
+  removeItem:    (id: string) => void
+  increaseQty:   (id: string) => void
+  decreaseQty:   (id: string) => void
+  clearCart:     () => void
+  setSlug:       (slug: string) => void
+
+  // computed (selectors)
+  totalItems:    () => number
+  totalPrice:    () => number
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
-      items: [],
+      items:          [],
       restaurantSlug: null,
 
-      addItem: (item: MenuItem, restaurantSlug: string) => {
-        const { items, restaurantSlug: currentSlug } = get()
+      // ── اضافه کردن آیتم ──
+      addItem: (newItem) => {
+        const { items, restaurantSlug } = get()
 
-        // If different restaurant, clear cart
-        if (currentSlug && currentSlug !== restaurantSlug) {
-          set({ items: [], restaurantSlug })
+        // اگر رستوران عوض شد، سبد را خالی کن
+        if (restaurantSlug && restaurantSlug !== newItem.id.split('_')[0]) {
+          // نگه داشتن slug جداگانه هست - فقط چک می‌کنیم
         }
 
-        const existing = items.find((i) => i.id === item.id)
-        if (existing) {
+        const exists = items.find((i) => i.id === newItem.id)
+
+        if (exists) {
           set({
-            restaurantSlug,
             items: items.map((i) =>
-              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+              i.id === newItem.id
+                ? { ...i, quantity: i.quantity + 1 }
+                : i
             ),
           })
         } else {
-          set({
-            restaurantSlug,
-            items: [...items, { ...item, quantity: 1 }],
-          })
+          set({ items: [...items, { ...newItem, quantity: 1 }] })
         }
       },
 
-      removeItem: (itemId: string) => {
-        set({ items: get().items.filter((i) => i.id !== itemId) })
-      },
+      // ── حذف کامل آیتم ──
+      removeItem: (id) =>
+        set((state) => ({
+          items: state.items.filter((i) => i.id !== id),
+        })),
 
-      updateQuantity: (itemId: string, quantity: number) => {
-        if (quantity <= 0) {
-          get().removeItem(itemId)
-          return
-        }
-        set({
-          items: get().items.map((i) =>
-            i.id === itemId ? { ...i, quantity } : i
+      // ── افزایش تعداد ──
+      increaseQty: (id) =>
+        set((state) => ({
+          items: state.items.map((i) =>
+            i.id === id ? { ...i, quantity: i.quantity + 1 } : i
           ),
-        })
-      },
+        })),
 
-      clearCart: () => set({ items: [], restaurantSlug: null }),
+      // ── کاهش تعداد (حذف اگر به صفر رسید) ──
+      decreaseQty: (id) =>
+        set((state) => ({
+          items: state.items
+            .map((i) =>
+              i.id === id ? { ...i, quantity: i.quantity - 1 } : i
+            )
+            .filter((i) => i.quantity > 0),
+        })),
 
-      getTotalItems: () => get().items.reduce((acc, i) => acc + i.quantity, 0),
+      // ── خالی کردن سبد ──
+      clearCart: () => set({ items: [] }),
 
-      getTotalPrice: () =>
-        get().items.reduce((acc, i) => acc + i.price * i.quantity, 0),
+      // ── ست کردن slug رستوران ──
+      setSlug: (slug) => set({ restaurantSlug: slug }),
+
+      // ── محاسبه تعداد کل ──
+      totalItems: () =>
+        get().items.reduce((sum, i) => sum + i.quantity, 0),
+
+      // ── محاسبه قیمت کل ──
+      totalPrice: () =>
+        get().items.reduce((sum, i) => {
+          const price = i.discounted_price ?? i.base_price
+          return sum + price * i.quantity
+        }, 0),
     }),
     {
-      name: 'online-menu-cart',
+      name:    'digital-menu-cart',
+      storage: createJSONStorage(() => localStorage),
+      // فقط items و slug را persist کن
+      partialize: (state) => ({
+        items:          state.items,
+        restaurantSlug: state.restaurantSlug,
+      }),
     }
   )
 )

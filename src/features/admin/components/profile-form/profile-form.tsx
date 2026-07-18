@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   IconAlertCircle,
@@ -14,6 +14,9 @@ import {
   IconLockOpen,
   IconArrowBackUp,
   IconDeviceFloppy,
+  IconClock,
+  IconMapPin,
+  IconMapPinOff,
 } from "@tabler/icons-react";
 import toast from "react-hot-toast";
 
@@ -27,10 +30,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { ImageUploader } from "@/components/ui/image-uploader";
+import { ImageUploader } from "@/components/shared/image-uploader";
 import { cn } from "@/lib/utils";
 import type { Tables } from "@/types/database.types";
 import { BrandColorPicker } from "../brand-color-picker/brand-color-picker";
+
+import { WorkingHoursEditor } from "../working-hours-editor/working-hours-editor";
+import { MapPickerModal } from "@/components/shared/map-picker-modal";
 
 type Props = {
   restaurant: Tables<"restaurants">;
@@ -61,11 +67,54 @@ function applyColorPreview(hex: string) {
   });
 }
 
+function parseWorkingHours(
+  raw: unknown,
+): RestaurantFormValues["working_hours"] {
+  const defaultDay = { open: false, from: "", to: "" };
+  const defaults = {
+    saturday: defaultDay,
+    sunday: defaultDay,
+    monday: defaultDay,
+    tuesday: defaultDay,
+    wednesday: defaultDay,
+    thursday: defaultDay,
+    friday: defaultDay,
+  };
+
+  if (!raw) return defaults;
+
+  let parsed: Record<string, unknown>;
+  if (typeof raw === "string") {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return defaults;
+    }
+  } else {
+    parsed = raw as Record<string, unknown>;
+  }
+
+  return Object.fromEntries(
+    Object.entries(defaults).map(([key, def]) => {
+      const day = parsed[key] as Record<string, unknown> | undefined;
+      return [
+        key,
+        {
+          open: typeof day?.open === "boolean" ? day.open : def.open,
+          from: typeof day?.from === "string" ? day.from : def.from,
+          to: typeof day?.to === "string" ? day.to : def.to,
+        },
+      ];
+    }),
+  ) as RestaurantFormValues["working_hours"];
+}
+
 export function ProfileForm({ restaurant }: Props) {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [clearLogo, setClearLogo] = useState(false);
   const [clearBanner, setClearBanner] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
 
   const socialLinks = parseSocialLinks(restaurant.social_links);
   const initialColor = restaurant.brand_color ?? "#9333ea";
@@ -83,7 +132,14 @@ export function ProfileForm({ restaurant }: Props) {
       telegram: socialLinks.telegram ?? "",
       whatsapp: socialLinks.whatsapp ?? "",
     },
+    working_hours: parseWorkingHours(restaurant.working_hours),
+    latitude: restaurant.latitude ?? null,
+    longitude: restaurant.longitude ?? null,
   };
+  const methods = useForm<RestaurantFormValues>({
+    resolver: zodResolver(restaurantSchema),
+    defaultValues,
+  });
 
   const {
     register,
@@ -92,16 +148,17 @@ export function ProfileForm({ restaurant }: Props) {
     setValue,
     reset,
     formState: { errors, isSubmitting, isDirty },
-  } = useForm<RestaurantFormValues>({
-    resolver: zodResolver(restaurantSchema),
-    defaultValues,
-  });
+  } = methods;
 
   const isActive = watch("is_active");
   const brandColor = watch("brand_color");
 
+  const latitude = watch("latitude");
+  const longitude = watch("longitude");
+
   const hasImageChange = !!logoFile || !!bannerFile || clearLogo || clearBanner;
   const hasAnyChange = isDirty || hasImageChange;
+  const hasLocation = latitude != null && longitude != null;
 
   // ── reset everything ──
   const handleReset = () => {
@@ -111,7 +168,7 @@ export function ProfileForm({ restaurant }: Props) {
     setClearLogo(false);
     setClearBanner(false);
     applyColorPreview(initialColor);
-    toast("فرم به حالت اولیه برگشت", { icon: <IconArrowBackUp  />});
+    toast("فرم به حالت اولیه برگشت", { icon: <IconArrowBackUp /> });
   };
 
   // ── submit ──
@@ -171,224 +228,310 @@ export function ProfileForm({ restaurant }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-      {/* ══ اطلاعات پایه ══ */}
-      <section className="space-y-5">
-        <SectionTitle icon={<IconInfoSquareRounded size={22} />}>
-          اطلاعات پایه
-        </SectionTitle>
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        {/* ══ اطلاعات پایه ══ */}
+        <section className="space-y-5">
+          <SectionTitle icon={<IconInfoSquareRounded size={22} />}>
+            اطلاعات پایه
+          </SectionTitle>
 
-        <div className="space-y-1.5">
-          <Label>
-            نام رستوران
-            <span className="text-red-500 mr-1">*</span>
-          </Label>
-          <Input
-            placeholder="مثال: کافه رویال"
-            error={!!errors.name}
-            {...register("name")}
-          />
-          {errors.name && <ErrorMsg>{errors.name.message}</ErrorMsg>}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>توضیحات</Label>
-          <Textarea
-            placeholder="معرفی کوتاه رستوران..."
-            {...register("description")}
-          />
-          {errors.description && (
-            <ErrorMsg>{errors.description.message}</ErrorMsg>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>آدرس</Label>
-          <Input
-            placeholder="تهران، خیابان ولیعصر..."
-            {...register("address")}
-          />
-          {errors.address && <ErrorMsg>{errors.address.message}</ErrorMsg>}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>شماره تماس</Label>
-          <Input placeholder="02112345678" dir="ltr" {...register("phone")} />
-          {errors.phone && <ErrorMsg>{errors.phone.message}</ErrorMsg>}
-        </div>
-      </section>
-
-      {/* ══ تصاویر ══ */}
-      <section className="space-y-5">
-        <SectionTitle icon={<IconPhotoEdit size={22} />}>
-          تصاویر رستوران
-        </SectionTitle>
-
-        <div className="flex items-start justify-between gap-5">
-          <div className="w-full space-y-1.5">
-            <Label>لوگو رستوران</Label>
-            <p className="text-xs text-ui-text-muted">
-              لوگو در صفحه منو نمایش داده می‌شود — نسبت ۱:۱ پیشنهاد می‌شود
-            </p>
-            <ImageUploader
-              value={restaurant.logo_url ?? null}
-              onChange={(file) => {
-                setLogoFile(file);
-                if (file) setClearLogo(false);
-              }}
-              onClear={() => {
-                setClearLogo(true);
-                setLogoFile(null);
-              }}
-              maxSizeMB={3}
-              placeholder="کلیک کنید یا لوگو را اینجا بکشید"
-            />
-          </div>
-
-          <div className="w-full space-y-1.5">
-            <Label>تصویر بنر</Label>
-            <p className="text-xs text-ui-text-muted">
-              تصویر پس‌زمینه صفحه منو — نسبت ۳:۱ پیشنهاد می‌شود
-            </p>
-            <ImageUploader
-              value={restaurant.banner_url ?? null}
-              onChange={(file) => {
-                setBannerFile(file);
-                if (file) setClearBanner(false);
-              }}
-              onClear={() => {
-                setClearBanner(true);
-                setBannerFile(null);
-              }}
-              maxSizeMB={5}
-              placeholder="کلیک کنید یا بنر را اینجا بکشید"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ══ شبکه‌های اجتماعی ══ */}
-      <section className="space-y-5">
-        <SectionTitle icon={<IconBrandInstagram size={22} />}>
-          شبکه‌های اجتماعی
-        </SectionTitle>
-
-        <div className="space-y-1.5">
-          <Label>اینستاگرام</Label>
-          <div className="relative">
-            <IconBrandInstagram
-              size={22}
-              className="absolute right-3 top-1/2 -translate-y-1/2
-                         text-ui-text-muted pointer-events-none"
-            />
+          <div className="space-y-1.5">
+            <Label>
+              نام رستوران
+              <span className="text-red-500 mr-1">*</span>
+            </Label>
             <Input
-              placeholder="https://instagram.com/yourpage"
-              dir="ltr"
-              className="pr-9"
-              error={!!errors.social_links?.instagram}
-              {...register("social_links.instagram")}
+              placeholder="مثال: کافه رویال"
+              error={!!errors.name}
+              {...register("name")}
             />
+            {errors.name && <ErrorMsg>{errors.name.message}</ErrorMsg>}
           </div>
-          {errors.social_links?.instagram && (
-            <ErrorMsg>{errors.social_links.instagram.message}</ErrorMsg>
-          )}
-        </div>
 
-        <div className="space-y-1.5">
-          <Label>تلگرام</Label>
-          <div className="relative">
-            <IconBrandTelegram
-              size={22}
-              className="absolute right-3 top-1/2 -translate-y-1/2
-                         text-ui-text-muted pointer-events-none"
+          <div className="space-y-1.5">
+            <Label>توضیحات</Label>
+            <Textarea
+              placeholder="معرفی کوتاه رستوران..."
+              {...register("description")}
             />
+            {errors.description && (
+              <ErrorMsg>{errors.description.message}</ErrorMsg>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>آدرس</Label>
             <Input
-              placeholder="https://t.me/yourpage"
-              dir="ltr"
-              className="pr-9"
-              error={!!errors.social_links?.telegram}
-              {...register("social_links.telegram")}
+              placeholder="تهران، خیابان ولیعصر..."
+              {...register("address")}
             />
+            {errors.address && <ErrorMsg>{errors.address.message}</ErrorMsg>}
           </div>
-          {errors.social_links?.telegram && (
-            <ErrorMsg>{errors.social_links.telegram.message}</ErrorMsg>
-          )}
-        </div>
 
-        <div className="space-y-1.5">
-          <Label>واتساپ</Label>
-          <div className="relative">
-            <IconBrandWhatsapp
-              size={22}
-              className="absolute right-3 top-1/2 -translate-y-1/2
+          <div className="space-y-1.5">
+            <Label>شماره تماس</Label>
+            <Input placeholder="02112345678" dir="ltr" {...register("phone")} />
+            {errors.phone && <ErrorMsg>{errors.phone.message}</ErrorMsg>}
+          </div>
+        </section>
+        {/* ══ موقعیت روی نقشه ══ */}
+        <section className="space-y-5">
+          <SectionTitle icon={<IconMapPin size={22} />}>
+            موقعیت رستوران
+          </SectionTitle>
+
+          <div
+            className={cn(
+              "flex items-center justify-between",
+              "rounded-xl border border-ui-border",
+              "bg-ui-bg-soft px-4 py-3",
+            )}
+          >
+            <div>
+              {hasLocation ? (
+                <>
+                  <p className="text-sm font-medium text-ui-text">
+                    موقعیت ثبت شده
+                  </p>
+                  <p className="text-xs font-mono text-ui-text-muted mt-0.5">
+                    {latitude?.toFixed(5)} , {longitude?.toFixed(5)}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-ui-text">
+                    موقعیت ثبت نشده
+                  </p>
+                  <p className="text-xs text-ui-text-muted mt-0.5">
+                    برای نمایش روی نقشه در صفحه منو، موقعیت را مشخص کنید
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* clear location */}
+              {hasLocation && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setValue("latitude", null, { shouldDirty: true });
+                    setValue("longitude", null, { shouldDirty: true });
+                  }}
+                  className="text-ui-text-muted hover:text-red-500 h-8 px-2"
+                >
+                  <IconMapPinOff size={15} stroke={2} />
+                </Button>
+              )}
+
+              {/* open map */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setMapOpen(true)}
+                className="h-8 px-3"
+              >
+                <IconMapPin size={14} stroke={2} />
+                {hasLocation ? "ویرایش موقعیت" : "انتخاب روی نقشه"}
+              </Button>
+            </div>
+          </div>
+
+          {/* map modal */}
+          <MapPickerModal
+            open={mapOpen}
+            onClose={() => setMapOpen(false)}
+            onConfirm={(coords) => {
+              setValue("latitude", coords.lat, { shouldDirty: true });
+              setValue("longitude", coords.lng, { shouldDirty: true });
+            }}
+            initialCoords={
+              hasLocation ? { lat: latitude!, lng: longitude! } : null
+            }
+          />
+        </section>
+
+        {/* ══ تصاویر ══ */}
+        <section className="space-y-5">
+          <SectionTitle icon={<IconPhotoEdit size={22} />}>
+            تصاویر رستوران
+          </SectionTitle>
+
+          <div className="flex items-start justify-between gap-5">
+            <div className="w-full space-y-1.5">
+              <Label>لوگو رستوران</Label>
+              <p className="text-xs text-ui-text-muted">
+                لوگو در صفحه منو نمایش داده می‌شود — نسبت ۱:۱ پیشنهاد می‌شود
+              </p>
+              <ImageUploader
+                value={restaurant.logo_url ?? null}
+                onChange={(file) => {
+                  setLogoFile(file);
+                  if (file) setClearLogo(false);
+                }}
+                onClear={() => {
+                  setClearLogo(true);
+                  setLogoFile(null);
+                }}
+                maxSizeMB={3}
+                placeholder="کلیک کنید یا لوگو را اینجا بکشید"
+              />
+            </div>
+
+            <div className="w-full space-y-1.5">
+              <Label>تصویر بکگراند</Label>
+              <p className="text-xs text-ui-text-muted">
+                تصویر پس‌زمینه صفحه لندینگ
+              </p>
+              <ImageUploader
+                value={restaurant.banner_url ?? null}
+                onChange={(file) => {
+                  setBannerFile(file);
+                  if (file) setClearBanner(false);
+                }}
+                onClear={() => {
+                  setClearBanner(true);
+                  setBannerFile(null);
+                }}
+                maxSizeMB={5}
+                placeholder="کلیک کنید یا بنر را اینجا بکشید"
+              />
+            </div>
+          </div>
+        </section>
+        {/* ══ ساعات کاری ══ */}
+        <section className="space-y-5">
+          <SectionTitle icon={<IconClock size={22} />}>ساعات کاری</SectionTitle>
+          <WorkingHoursEditor />
+        </section>
+
+        {/* ══ شبکه‌های اجتماعی ══ */}
+        <section className="space-y-5">
+          <SectionTitle icon={<IconBrandInstagram size={22} />}>
+            شبکه‌های اجتماعی
+          </SectionTitle>
+
+          <div className="space-y-1.5">
+            <Label>اینستاگرام</Label>
+            <div className="relative">
+              <IconBrandInstagram
+                size={22}
+                className="absolute right-3 top-1/2 -translate-y-1/2
                          text-ui-text-muted pointer-events-none"
-            />
-            <Input
-              placeholder="989123456789+"
-              dir="ltr"
-              className="pr-9"
-              {...register("social_links.whatsapp")}
-            />
+              />
+              <Input
+                placeholder="https://instagram.com/yourpage"
+                dir="ltr"
+                className="pr-9"
+                error={!!errors.social_links?.instagram}
+                {...register("social_links.instagram")}
+              />
+            </div>
+            {errors.social_links?.instagram && (
+              <ErrorMsg>{errors.social_links.instagram.message}</ErrorMsg>
+            )}
           </div>
-        </div>
-      </section>
 
-      {/* ══ رنگ برند ══ */}
-      <section className="space-y-5">
-        <SectionTitle icon={<IconPalette size={22} />}>رنگ برند</SectionTitle>
-        <BrandColorPicker
-          value={brandColor}
-          onChange={(color) =>
-            setValue("brand_color", color, { shouldDirty: true })
-          }
-          onReset={() =>
-            setValue("brand_color", initialColor, { shouldDirty: false })
-          }
-          isDirty={brandColor !== initialColor}
-        />
-      </section>
+          <div className="space-y-1.5">
+            <Label>تلگرام</Label>
+            <div className="relative">
+              <IconBrandTelegram
+                size={22}
+                className="absolute right-3 top-1/2 -translate-y-1/2
+                         text-ui-text-muted pointer-events-none"
+              />
+              <Input
+                placeholder="https://t.me/yourpage"
+                dir="ltr"
+                className="pr-9"
+                error={!!errors.social_links?.telegram}
+                {...register("social_links.telegram")}
+              />
+            </div>
+            {errors.social_links?.telegram && (
+              <ErrorMsg>{errors.social_links.telegram.message}</ErrorMsg>
+            )}
+          </div>
 
-      {/* ══ وضعیت ══ */}
-      <section className="space-y-5">
-        <SectionTitle icon={<IconLockOpen size={22} />}>وضعیت</SectionTitle>
-        <ToggleRow
-          label="رستوران فعال است"
-          description={
-            isActive
-              ? "منوی رستوران برای مشتریان نمایش داده می‌شود"
-              : "منوی رستوران مخفی است و مشتریان نمی‌توانند آن را ببینند"
-          }
-          checked={isActive}
-          onChange={(v) => setValue("is_active", v, { shouldDirty: true })}
-        />
-      </section>
+          <div className="space-y-1.5">
+            <Label>واتساپ</Label>
+            <div className="relative">
+              <IconBrandWhatsapp
+                size={22}
+                className="absolute right-3 top-1/2 -translate-y-1/2
+                         text-ui-text-muted pointer-events-none"
+              />
+              <Input
+                placeholder="989123456789+"
+                dir="ltr"
+                className="pr-9"
+                {...register("social_links.whatsapp")}
+              />
+            </div>
+          </div>
+        </section>
 
-      {/* ══ footer ══ */}
-      <div
-        className={cn(
-          "flex items-center justify-between",
-          "pt-4 border-t border-ui-border",
-        )}
-      >
-        {/* ── reset ── */}
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={handleReset}
-          disabled={!hasAnyChange || isSubmitting}
-          className="text-ui-text-muted hover:text-ui-text"
+        {/* ══ رنگ برند ══ */}
+        <section className="space-y-5">
+          <SectionTitle icon={<IconPalette size={22} />}>رنگ برند</SectionTitle>
+          <BrandColorPicker
+            value={brandColor}
+            onChange={(color) =>
+              setValue("brand_color", color, { shouldDirty: true })
+            }
+            onReset={() =>
+              setValue("brand_color", initialColor, { shouldDirty: false })
+            }
+            isDirty={brandColor !== initialColor}
+          />
+        </section>
+
+        {/* ══ وضعیت ══ */}
+        <section className="space-y-5">
+          <SectionTitle icon={<IconLockOpen size={22} />}>وضعیت</SectionTitle>
+          <ToggleRow
+            label="رستوران فعال است"
+            description={
+              isActive
+                ? "منوی رستوران برای مشتریان نمایش داده می‌شود"
+                : "منوی رستوران مخفی است و مشتریان نمی‌توانند آن را ببینند"
+            }
+            checked={isActive}
+            onChange={(v) => setValue("is_active", v, { shouldDirty: true })}
+          />
+        </section>
+
+        {/* ══ footer ══ */}
+        <div
+          className={cn(
+            "flex items-center justify-between",
+            "pt-4 border-t border-ui-border",
+          )}
         >
-          <IconArrowBackUp size={22} stroke={2} />
-          بازگشت به حالت اولیه
-        </Button>
+          {/* ── reset ── */}
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleReset}
+            disabled={!hasAnyChange || isSubmitting}
+            className="text-ui-text-muted hover:text-ui-text"
+          >
+            <IconArrowBackUp size={22} stroke={2} />
+            بازگشت به حالت اولیه
+          </Button>
 
-        {/* ── submit ── */}
-        <Button type="submit" loading={isSubmitting} disabled={!hasAnyChange}>
-          <IconDeviceFloppy size={22} stroke={2} />
-          ذخیره تغییرات
-        </Button>
-      </div>
-    </form>
+          {/* ── submit ── */}
+          <Button type="submit" loading={isSubmitting} disabled={!hasAnyChange}>
+            <IconDeviceFloppy size={22} stroke={2} />
+            ذخیره تغییرات
+          </Button>
+        </div>
+      </form>
+    </FormProvider>
   );
 }
 

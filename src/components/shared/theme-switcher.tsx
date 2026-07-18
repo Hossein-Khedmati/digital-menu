@@ -2,7 +2,7 @@
 
 import { useTheme } from "@/lib/theme/use-theme";
 import { cn } from "@/lib/utils";
-import { Button } from "./button";
+import { Button } from "@/components/ui/button";
 import { IconDeviceDesktop, IconMoon, IconSun } from "@tabler/icons-react";
 
 export function ThemeToggle({ className }: { className?: string }) {

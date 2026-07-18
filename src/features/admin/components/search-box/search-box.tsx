@@ -1,10 +1,9 @@
 "use client";
 
-import { Search, X } from "lucide-react";
+import { IconSearch , IconX } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { IconX } from "@tabler/icons-react";
 import { Props } from "./types";
 
 export function SearchBox({
@@ -15,7 +14,7 @@ export function SearchBox({
 }: Props) {
   return (
     <div className={cn("relative", className)}>
-      <Search
+      <IconSearch
         className="absolute right-3 top-1/2 -translate-y-1/2
                    h-4 w-4 text-gray-400 pointer-events-none"
       />

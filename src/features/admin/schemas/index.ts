@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const daySchema = z.object({
+  open: z.boolean(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+
 export const restaurantSchema = z.object({
   name: z
     .string({ message: "نام رستوران الزامی است" })
@@ -21,7 +27,6 @@ export const restaurantSchema = z.object({
     .optional()
     .or(z.literal("")),
   is_active: z.boolean(),
-  // ✅ brand_color merged in
   brand_color: z
     .string()
     .regex(/^#[0-9A-Fa-f]{6}$/, "رنگ باید فرمت HEX معتبر باشد (مثال: #9333ea)"),
@@ -40,9 +45,25 @@ export const restaurantSchema = z.object({
       whatsapp: z.string().optional().or(z.literal("")),
     })
     .optional(),
+  working_hours: z
+    .object({
+      saturday: daySchema,
+      sunday: daySchema,
+      monday: daySchema,
+      tuesday: daySchema,
+      wednesday: daySchema,
+      thursday: daySchema,
+      friday: daySchema,
+    })
+    .optional(),
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
 });
 
 export type RestaurantFormValues = z.infer<typeof restaurantSchema>;
+export type DaySchedule = z.infer<typeof daySchema>;
+export type WorkingHours = NonNullable<RestaurantFormValues["working_hours"]>;
+export type DayKey = keyof WorkingHours;
 
 export const categorySchema = z.object({
   name: z

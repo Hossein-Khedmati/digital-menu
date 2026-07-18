@@ -16,6 +16,7 @@ import { menuItemSchema, type MenuItemFormValues } from "../../schemas";
 import {
   upsertMenuItemAction,
   uploadMenuItemImage,
+  clearMenuItemImageAction,
 } from "../../actions/menu-item.actions";
 import {
   Dialog,
@@ -30,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { ImageUploader } from "@/components/ui/image-uploader";
+import { ImageUploader } from "@/components/shared/image-uploader";
 import { cn, formatPrice } from "@/lib/utils";
 import { Combobox, ComboboxOption } from "@/components/ui/combobox";
 import { Props } from "./types";
@@ -94,15 +95,22 @@ export function MenuItemModal({
   const onSubmit = async (values: MenuItemFormValues) => {
     let imageUrl: string | null = item?.image_url ?? null;
 
-    // اگر تصویر پاک شد
-    if (clearImage) imageUrl = null;
+    // ── user cleared the image ──
+    if (clearImage) {
+      imageUrl = null;
+      // ✅ delete old image from bucket if exists
+      if (item?.image_url && item?.id) {
+        await clearMenuItemImageAction(item.image_url, item.id, restaurantId);
+      }
+    }
 
-    // اگر تصویر جدید انتخاب شد
+    // ── user picked a new image ──
     if (imageFile) {
       const { url, error } = await uploadMenuItemImage(
         imageFile,
         userId,
-        item?.image_url,
+        // ✅ pass old url so uploadMenuItemImage deletes it before uploading
+        clearImage ? null : (item?.image_url ?? null),
       );
       if (error) {
         toast.error(error);
@@ -126,11 +134,13 @@ export function MenuItemModal({
       toast.error(result.error ?? "خطایی رخ داد");
     }
   };
+
   const categoryOptions: ComboboxOption[] = categories.map((cat) => ({
     value: cat.id,
     label: cat.name,
     icon: cat.icon ?? undefined,
   }));
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {/* ── Trigger ── */}
@@ -163,17 +173,19 @@ export function MenuItemModal({
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogBody className="space-y-6">
-            {/* ── آپلود تصویر ── */}
+            {/* ── تصویر ── */}
             <div className="space-y-1.5">
               <Label>تصویر آیتم</Label>
-              {/* ✅ از کامپوننت مستقل استفاده می‌کنیم */}
               <ImageUploader
                 value={item?.image_url ?? null}
                 onChange={(file) => {
                   setImageFile(file);
                   if (file) setClearImage(false);
                 }}
-                onClear={() => setClearImage(true)}
+                onClear={() => {
+                  setClearImage(true);
+                  setImageFile(null);
+                }}
                 maxSizeMB={3}
                 placeholder="کلیک کنید یا تصویر را اینجا بکشید"
               />
@@ -258,7 +270,6 @@ export function MenuItemModal({
                     className="text-left pr-9"
                     error={!!errors.discounted_price}
                     {...register("discounted_price", {
-                      // ✅ رشته خالی → undefined
                       setValueAs: (v) => {
                         if (v === "" || v === null || v === undefined)
                           return undefined;
@@ -280,7 +291,6 @@ export function MenuItemModal({
                 دسته‌بندی
                 <span className="text-red-500 mr-1">*</span>
               </Label>
-
               <Combobox
                 options={categoryOptions}
                 value={watch("category_id")}
@@ -292,7 +302,6 @@ export function MenuItemModal({
                 emptyMessage="دسته‌بندی یافت نشد"
                 error={!!errors.category_id}
               />
-
               {errors.category_id && (
                 <ErrorMsg>{errors.category_id.message}</ErrorMsg>
               )}
@@ -343,9 +352,7 @@ export function MenuItemModal({
   );
 }
 
-// ─────────────────────────────────────────
-// Error Message
-// ─────────────────────────────────────────
+// ── Error Message ──
 function ErrorMsg({ children }: { children: React.ReactNode }) {
   return (
     <p
@@ -358,6 +365,7 @@ function ErrorMsg({ children }: { children: React.ReactNode }) {
   );
 }
 
+// ── Toggle Row ──
 function ToggleRow({
   label,
   description,

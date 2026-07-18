@@ -1,17 +1,8 @@
-// features/menu/components/menu-grid.tsx
-
 import Link from "next/link";
 import { IconToolsKitchen2Off } from "@tabler/icons-react";
 import { createClient } from "@/lib/supabase/server";
 import { MenuItemCard } from "@/features/menu/components/menu-item-card/menu-item-card";
-
-type Props = {
-  restaurantId: string;
-  slug: string;
-  q?: string;
-  sort?: string;
-  cat?: string;
-};
+import { Props } from "./types";
 
 export async function MenuGrid({ restaurantId, slug, q, sort, cat }: Props) {
   const supabase = await createClient();
