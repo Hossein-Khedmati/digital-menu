@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-family-sans: var(--font-vazir), system-ui, sans-serif;
+
+  /*
+    brand color شیدها از CSS variable می‌آیند
+    که server-side inject می‌شوند
+  */
+  --color-brand: var(--brand-color, #9333ea);
+  --color-brand-light: var(--brand-color-light, #f3e8ff);
+  --color-brand-dark: var(--brand-color-dark, #7e22ce);
+  --color-brand-subtle: var(--brand-color-subtle, #faf5ff);
+
+  /* UI colors - theme-aware */
+  --color-ui-bg: var(--ui-bg);
+  --color-ui-bg-soft: var(--ui-bg-soft);
+  --color-ui-bg-muted: var(--ui-bg-muted);
+  --color-ui-surface: var(--ui-surface);
+  --color-ui-border: var(--ui-border);
+  --color-ui-text: var(--ui-text);
+  --color-ui-text-soft: var(--ui-text-soft);
+  --color-ui-text-muted: var(--ui-text-muted);
+}
+
+/* ─────────────────────────────────────────
+   Light Mode (default)
+───────────────────────────────────────── */
+:root {
+  --ui-bg: #ffffff;
+  --ui-bg-soft: #f9fafb;
+  --ui-bg-muted: #f3f4f6;
+  --ui-surface: #ffffff;
+  --ui-border: #e5e7eb;
+  --ui-text: #111827;
+  --ui-text-soft: #6b7280;
+  --ui-text-muted: #9ca3af;
+}
+
+/* ─────────────────────────────────────────
+   Dark Mode
+───────────────────────────────────────── */
+.dark {
+  --ui-bg: #0f172a;
+  --ui-bg-soft: #1e293b;
+  --ui-bg-muted: #334155;
+  --ui-surface: #1e293b;
+  --ui-border: #334155;
+  --ui-text: #f1f5f9;
+  --ui-text-soft: #94a3b8;
+  --ui-text-muted: #64748b;
+}
+
+body {
+  background-color: var(--ui-bg-soft);
+  color: var(--ui-text);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
