@@ -139,10 +139,10 @@ export function LoginForm() {
 
       <Button
         type="submit"
-        variant="outline"
+        variant="default"
         size="lg"
         loading={isLoading}
-        className="w-full mt-2 text-black/70 cursor-pointer"
+        className="w-full mt-2 cursor-pointer"
       >
         {isLoading ? 'در حال ورود...' : 'ورود به پنل مدیریت'}
       </Button>

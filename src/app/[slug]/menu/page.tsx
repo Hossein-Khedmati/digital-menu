@@ -129,6 +129,31 @@ export default async function MenuPage({ params, searchParams }: Props) {
       </div>
 
       <CartDrawer />
+      <footer className="border-t border-ui-border mt-8 py-6">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-center text-xs text-ui-text-muted">
+              تمامی حقوق مادی و معنوی این سایت متعلق به{" "}
+              <span className="font-semibold text-ui-text">
+                {restaurant.name}
+              </span>{" "}
+              می‌باشد.
+            </p>
+
+            <p className="text-center text-[11px] text-ui-text-muted/70">
+              توسعه داده شده توسط{" "}
+              <Link
+                href="https://menuvita.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-brand hover:text-brand-dark transition-colors duration-200 hover:underline"
+              >
+                منوویتا
+              </Link>
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
