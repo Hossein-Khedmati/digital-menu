@@ -80,7 +80,7 @@ export function WorkingHoursEditor() {
 
             {/* ── time inputs ── */}
             {isOpen ? (
-              <div className="flex items-center gap-3 flex-1">
+              <div className="flex items-center gap-3 flex-1 max-md:flex-col">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs text-ui-text-muted shrink-0">
                     از

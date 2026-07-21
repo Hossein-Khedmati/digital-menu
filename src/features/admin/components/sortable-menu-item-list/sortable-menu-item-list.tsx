@@ -1,26 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import {
-  restrictToVerticalAxis,
-  restrictToParentElement,
-} from "@dnd-kit/modifiers";
-import { CSS } from "@dnd-kit/utilities";
+import { useState, useTransition, useRef } from "react";
+import { DragDropProvider } from "@dnd-kit/react";
+import { useSortable } from "@dnd-kit/react/sortable";
+import { move } from "@dnd-kit/helpers";
 import {
   IconGripVertical,
   IconEye,
@@ -39,7 +22,6 @@ import { DeleteBtn } from "../delete-button/delete-button";
 import { FilterChips } from "@/features/admin/components/filter-chips/filter-chips";
 import { FilterChipOption } from "@/features/admin/components/filter-chips/types";
 import { useSearch } from "../../hooks/use-search";
-// ✅ import the hook
 import { useIsMounted } from "../../../../hooks/use-is-mounted";
 import { Button } from "@/components/ui/button";
 import { formatPrice, cn, toPersianNumber } from "@/lib/utils";
@@ -68,7 +50,6 @@ export function SortableMenuItemList({
   const [isDirty, setIsDirty] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  // ✅ mounted check
   const isMounted = useIsMounted();
 
   // ── فیلتر دسته‌بندی ──
@@ -84,25 +65,20 @@ export function SortableMenuItemList({
 
   const isSearching = !!query || activeCatFilter !== "all";
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  // ── DnD ──
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
+  const handleDragEnd = (event: any) => {
     setItems((prev) => {
-      const oldIndex = prev.findIndex((i) => i.id === active.id);
-      const newIndex = prev.findIndex((i) => i.id === over.id);
-      return arrayMove(prev, oldIndex, newIndex);
-    });
-    setIsDirty(true);
-  };
+      const next = move(prev, event);
 
+      const orderChanged = next.some(
+        (item, index) => item.id !== prev[index].id,
+      );
+      if (orderChanged) {
+        setIsDirty(true);
+      }
+
+      return next;
+    });
+  };
   // ── ذخیره ترتیب ──
   const handleSaveOrder = () => {
     startTransition(async () => {
@@ -156,11 +132,12 @@ export function SortableMenuItemList({
   ];
 
   // ── shared row props ──
-  const rowProps = (item: MenuItemWithCategory) => ({
+  const rowProps = (item: MenuItemWithCategory, index: number) => ({
     item,
     restaurantId,
     userId,
     categories,
+    index,
     onUpdated: handleUpdated,
     onDeleted: handleDeleted,
   });
@@ -266,31 +243,21 @@ export function SortableMenuItemList({
       ) : !isMounted ? (
         <div className="space-y-2">
           {filtered.map((item) => (
-            <StaticMenuItemRow key={item.id} {...rowProps(item)} />
+            <StaticMenuItemRow key={item.id} {...rowProps(item, 0)} />
           ))}
         </div>
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={filtered.map((i) => i.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <div className="space-y-2">
-              {filtered.map((item) => (
-                <SortableMenuItemRow
-                  key={item.id}
-                  {...rowProps(item)}
-                  isSearching={isSearching}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+        <DragDropProvider onDragEnd={handleDragEnd}>
+          <div className="space-y-2">
+            {filtered.map((item, index) => (
+              <SortableMenuItemRow
+                key={item.id}
+                {...rowProps(item, index)}
+                isSearching={isSearching}
+              />
+            ))}
+          </div>
+        </DragDropProvider>
       )}
     </div>
   );

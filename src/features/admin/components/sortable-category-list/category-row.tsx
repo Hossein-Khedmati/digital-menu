@@ -1,6 +1,5 @@
-import { useSortable } from "@dnd-kit/sortable";
-import { RowProps, RowPropsWithoutSearch } from "./types";
-import { CSS } from "@dnd-kit/utilities";
+import { useRef, useState } from "react";
+import { useSortable } from "@dnd-kit/react/sortable";
 import { cn } from "@/lib/utils";
 import {
   IconEye,
@@ -11,50 +10,47 @@ import {
 import { CategoryModal } from "../category-modal/category-modal";
 import { DeleteBtn } from "../delete-button/delete-button";
 import { deleteCategoryAction } from "../../actions/category.actions";
+import { RowProps, RowPropsWithoutSearch } from "./types";
 
 export function SortableCategoryRow({
   category,
   restaurantId,
+  index,
   isSearching,
   onUpdated,
   onDeleted,
-}: RowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: category.id, disabled: isSearching });
+}: RowProps & { index: number }) {
+  const [element, setElement] = useState<HTMLElement | null>(null);
+  const handleRef = useRef<HTMLButtonElement | null>(null);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  const { isDragging } = useSortable({
+    id: category.id,
+    index,
+    element,
+    handle: handleRef,
+    disabled: isSearching,
+  });
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
+      ref={setElement}
       className={cn(
-        "flex items-center gap-3 rounded-2xl",
+        "flex items-center gap-2 rounded-2xl",
         "border border-ui-border bg-ui-surface",
-        "px-4 py-3 shadow-sm",
+        "px-3 py-3 shadow-sm",
         "transition-all duration-200",
         isDragging
           ? "shadow-xl border-brand bg-brand-subtle/30 z-50 scale-[1.01]"
           : "hover:shadow-md",
       )}
     >
-      {/* ── دستگیره Drag ── */}
+      {/* Drag Handle */}
       <button
-        {...attributes}
-        {...listeners}
+        ref={handleRef}
         className={cn(
-          "flex h-8 w-8 items-center justify-center",
+          "flex h-8 w-6 items-center justify-center",
           "rounded-lg shrink-0 text-ui-text-muted",
-          "transition-colors",
+          "transition-colors select-none",
           isSearching
             ? "cursor-not-allowed opacity-30"
             : [
@@ -67,27 +63,53 @@ export function SortableCategoryRow({
         <IconGripVertical size={16} stroke={2} />
       </button>
 
-      {/* ── آیکون + نام ── */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div
-          className="h-10 w-10 rounded-xl bg-ui-bg-muted
-                        flex items-center justify-center shrink-0"
-        >
+      {/* Icon + Name + Badge (mobile: badge under name) */}
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-ui-bg-muted flex items-center justify-center shrink-0">
           {category.icon ? (
-            <span className="text-xl leading-none">{category.icon}</span>
+            <span className="text-lg sm:text-xl leading-none">
+              {category.icon}
+            </span>
           ) : (
-            <IconTag size={18} stroke={1.5} className="text-ui-text-muted" />
+            <IconTag size={16} stroke={1.5} className="text-ui-text-muted" />
           )}
         </div>
-        <p className="font-medium text-ui-text text-sm truncate">
-          {category.name}
-        </p>
+
+        <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+          <p className="font-medium text-ui-text text-sm truncate">
+            {category.name}
+          </p>
+
+          {/* Status badge — mobile only (under name) */}
+          <span
+            className={cn(
+              "sm:hidden self-start",
+              "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full",
+              category.is_active
+                ? "bg-green-100 text-green-700"
+                : "bg-ui-bg-muted text-ui-text-muted",
+            )}
+          >
+            {category.is_active ? (
+              <>
+                <IconEye size={10} />
+                فعال
+              </>
+            ) : (
+              <>
+                <IconEyeOff size={10} />
+                غیرفعال
+              </>
+            )}
+          </span>
+        </div>
       </div>
 
-      {/* ── badge وضعیت ── */}
+      {/* Status Badge — sm and above */}
       <span
         className={cn(
-          "flex items-center gap-1 text-xs px-2 py-0.5 rounded-full shrink-0",
+          "hidden sm:flex items-center gap-1 w-fit",
+          "text-xs px-2 py-0.5 rounded-full shrink-0",
           category.is_active
             ? "bg-green-100 text-green-700"
             : "bg-ui-bg-muted text-ui-text-muted",
@@ -106,8 +128,8 @@ export function SortableCategoryRow({
         )}
       </span>
 
-      {/* ── اکشن‌ها ── */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      {/* Actions */}
+      <div className="flex items-center gap-1 shrink-0">
         <CategoryModal
           restaurantId={restaurantId}
           category={category}
@@ -132,40 +154,66 @@ export function StaticCategoryRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-2xl",
+        "flex items-center gap-2 rounded-2xl",
         "border border-ui-border bg-ui-surface",
-        "px-4 py-3 shadow-sm",
+        "px-3 py-3 shadow-sm",
       )}
     >
-      {/* drag handle — inert */}
+      {/* Inert drag handle */}
       <div
-        className="flex h-8 w-8 items-center justify-center
+        className="flex h-8 w-6 items-center justify-center
                      rounded-lg shrink-0 text-ui-text-muted opacity-30"
       >
         <IconGripVertical size={16} stroke={2} />
       </div>
 
-      {/* آیکون + نام */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div
-          className="h-10 w-10 rounded-xl bg-ui-bg-muted
-                        flex items-center justify-center shrink-0"
-        >
+      {/* Icon + Name + Badge (mobile: badge under name) */}
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-ui-bg-muted flex items-center justify-center shrink-0">
           {category.icon ? (
-            <span className="text-xl leading-none">{category.icon}</span>
+            <span className="text-lg sm:text-xl leading-none">
+              {category.icon}
+            </span>
           ) : (
-            <IconTag size={18} stroke={1.5} className="text-ui-text-muted" />
+            <IconTag size={16} stroke={1.5} className="text-ui-text-muted" />
           )}
         </div>
-        <p className="font-medium text-ui-text text-sm truncate">
-          {category.name}
-        </p>
+
+        <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+          <p className="font-medium text-ui-text text-sm truncate">
+            {category.name}
+          </p>
+
+          {/* Status badge — mobile only */}
+          <span
+            className={cn(
+              "sm:hidden self-start",
+              "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full",
+              category.is_active
+                ? "bg-green-100 text-green-700"
+                : "bg-ui-bg-muted text-ui-text-muted",
+            )}
+          >
+            {category.is_active ? (
+              <>
+                <IconEye size={10} />
+                فعال
+              </>
+            ) : (
+              <>
+                <IconEyeOff size={10} />
+                غیرفعال
+              </>
+            )}
+          </span>
+        </div>
       </div>
 
-      {/* badge وضعیت */}
+      {/* Status Badge — sm and above */}
       <span
         className={cn(
-          "flex items-center gap-1 text-xs px-2 py-0.5 rounded-full shrink-0",
+          "hidden sm:flex items-center gap-1 w-fit",
+          "text-xs px-2 py-0.5 rounded-full shrink-0",
           category.is_active
             ? "bg-green-100 text-green-700"
             : "bg-ui-bg-muted text-ui-text-muted",
@@ -173,17 +221,19 @@ export function StaticCategoryRow({
       >
         {category.is_active ? (
           <>
-            <IconEye size={11} /> فعال
+            <IconEye size={11} />
+            فعال
           </>
         ) : (
           <>
-            <IconEyeOff size={11} /> غیرفعال
+            <IconEyeOff size={11} />
+            غیرفعال
           </>
         )}
       </span>
 
-      {/* اکشن‌ها */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      {/* Actions */}
+      <div className="flex items-center gap-1 shrink-0">
         <CategoryModal
           restaurantId={restaurantId}
           category={category}

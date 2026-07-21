@@ -39,7 +39,7 @@ const DialogContent = React.forwardRef<
         "w-full max-w-lg",
         "rounded-2xl border border-ui-border bg-ui-surface shadow-2xl",
         "max-h-[90vh] overflow-y-auto",
-        "data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out",
+        "data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out max-md:w-[80%]",
         className,
       )}
       {...props}

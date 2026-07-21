@@ -25,7 +25,15 @@ export function ThemeToggle({ className }: { className?: string }) {
     theme === "dark" ? "تم تاریک" : theme === "system" ? "تم سیستم" : "تم روشن";
 
   return (
-    <Button onClick={cycle} size="icon" aria-label={label} variant="default">
+    <Button
+      onClick={cycle}
+      size="icon"
+      aria-label={label}
+      variant="default"
+      className={cn(
+        className,
+      )}
+    >
       <Icon className="size-5" />
     </Button>
   );

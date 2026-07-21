@@ -1,25 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import {
-  restrictToVerticalAxis,
-  restrictToParentElement,
-} from "@dnd-kit/modifiers";
+import { useState, useTransition, useRef } from "react";
+import { DragDropProvider } from "@dnd-kit/react";
+import { move } from "@dnd-kit/helpers";
 import {
   IconGripVertical,
   IconTag,
@@ -49,22 +32,19 @@ export function SortableCategoryList({ categories, restaurantId }: Props) {
   const { query, setQuery, filtered } = useSearch(items);
   const isSearching = !!query;
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
+  const handleDragEnd = (event: any) => {
     setItems((prev) => {
-      const oldIndex = prev.findIndex((i) => i.id === active.id);
-      const newIndex = prev.findIndex((i) => i.id === over.id);
-      return arrayMove(prev, oldIndex, newIndex);
+      const next = move(prev, event);
+
+      const orderChanged = next.some(
+        (item, index) => item.id !== prev[index].id,
+      );
+      if (orderChanged) {
+        setIsDirty(true);
+      }
+
+      return next;
     });
-    setIsDirty(true);
   };
 
   const handleSaveOrder = () => {
@@ -105,7 +85,6 @@ export function SortableCategoryList({ categories, restaurantId }: Props) {
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // ── shared row props ──
   const rowProps = (cat: Tables<"categories">) => ({
     category: cat,
     restaurantId,
@@ -115,7 +94,7 @@ export function SortableCategoryList({ categories, restaurantId }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* ── نوار ابزار ── */}
+      {/* Toolbar */}
       <div className="flex items-center gap-3 flex-wrap">
         <SearchBox
           value={query}
@@ -126,7 +105,7 @@ export function SortableCategoryList({ categories, restaurantId }: Props) {
         <CategoryModal restaurantId={restaurantId} onCreated={handleCreated} />
       </div>
 
-      {/* ── پیام تغییر ترتیب ── */}
+      {/* Dirty state message */}
       {isDirty && (
         <div
           className={cn(
@@ -166,7 +145,7 @@ export function SortableCategoryList({ categories, restaurantId }: Props) {
         </div>
       )}
 
-      {/* ── آمار ── */}
+      {/* Stats */}
       <div className="flex items-center justify-between text-xs text-ui-text-muted">
         <span>
           {toPersianNumber(filtered.length)} دسته‌بندی
@@ -194,27 +173,18 @@ export function SortableCategoryList({ categories, restaurantId }: Props) {
           ))}
         </div>
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={filtered.map((i) => i.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <div className="space-y-2">
-              {filtered.map((cat) => (
-                <SortableCategoryRow
-                  key={cat.id}
-                  {...rowProps(cat)}
-                  isSearching={isSearching}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+        <DragDropProvider onDragEnd={handleDragEnd}>
+          <div className="space-y-2">
+            {filtered.map((cat, index) => (
+              <SortableCategoryRow
+                key={cat.id}
+                {...rowProps(cat)}
+                index={index}
+                isSearching={isSearching}
+              />
+            ))}
+          </div>
+        </DragDropProvider>
       )}
     </div>
   );
