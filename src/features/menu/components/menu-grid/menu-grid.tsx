@@ -53,7 +53,7 @@ export async function MenuGrid({ restaurantId, slug, q, sort, cat }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pb-28">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pb-10">
       {data?.map((item) => (
         <MenuItemCard key={item.id} item={item} />
       ))}

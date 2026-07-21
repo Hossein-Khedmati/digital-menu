@@ -6,9 +6,6 @@ import { QRCodeCanvas } from "@/components/shared/qr-code";
 import { SortableCategoryList } from "@/features/admin/components/sortable-category-list/sortable-category-list";
 import { SortableMenuItemList } from "@/features/admin/components/sortable-menu-item-list/sortable-menu-item-list";
 import {
-  IconToolsKitchen3,
-  IconBuildingStore,
-  IconLayoutGrid,
   IconExternalLink,
   IconToolsKitchen2,
 } from "@tabler/icons-react";
