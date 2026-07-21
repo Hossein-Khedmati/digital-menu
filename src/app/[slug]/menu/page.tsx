@@ -82,7 +82,7 @@ export default async function MenuPage({ params, searchParams }: Props) {
             {/* نام یا لوگو رستوران */}
             <div className="flex items-center gap-2 bg-brand p-1.5 rounded-xl">
               {restaurant.logo_url && (
-                <div>
+                <div className="size-8 overflow-hidden rounded-lg">
                   <Image
                     src={restaurant.logo_url}
                     width={1000}

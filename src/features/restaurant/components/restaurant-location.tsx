@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import {  IconMapPin } from "@tabler/icons-react";
+import { IconMapPin } from "@tabler/icons-react";
 
 type Props = {
   lat: number;
@@ -19,7 +19,7 @@ export function RestaurantLocation({ lat, lng, name }: Props) {
         await navigator.share({
           title: name,
           text: `مسیریابی به سمت ${name}`,
-          url: fallbackGoogleUrl, // سیستم‌عامل‌های موبایل این لینک را گرفته و اپ‌های مسیریاب نصب‌شده را به کاربر پیشنهاد می‌دهند
+          url: fallbackGoogleUrl,
         });
       } catch (error) {
         window.open(fallbackGoogleUrl, "_blank");
@@ -30,12 +30,10 @@ export function RestaurantLocation({ lat, lng, name }: Props) {
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        onClick={handleNavigation}
-      >
-        <IconMapPin  />
-        مسیریابی روی نقشه
+    <div className="flex items-center gap-2 ">
+      <Button onClick={handleNavigation} className="max-sm:p-2.5 px-3">
+        <IconMapPin />
+        <span className="max-sm:hidden text-sm">مسیریابی</span>
       </Button>
     </div>
   );

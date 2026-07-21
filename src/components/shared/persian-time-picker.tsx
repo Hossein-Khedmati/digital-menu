@@ -5,7 +5,7 @@ import { IconClock, IconChevronUp, IconChevronDown } from "@tabler/icons-react";
 import { cn, toPersianNumber } from "@/lib/utils";
 
 type Props = {
-  value: string; // "HH:mm"
+  value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;

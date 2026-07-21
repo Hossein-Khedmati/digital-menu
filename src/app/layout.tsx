@@ -48,7 +48,7 @@ export default function RootLayout({
             },
 
             success: {
-              duration: 3000,
+              duration: 4000,
               style: {
                 background: "var(--ui-surface)",
                 border: "1px solid #bbf7d0",

@@ -184,9 +184,7 @@ export default async function RestaurantPage({ params }: Props) {
     restaurant.longitude !== undefined;
 
   const hasContactInfo =
-    Boolean(restaurant.address) ||
-    Boolean(restaurant.phone) ||
-    hasLocation;
+    Boolean(restaurant.address) || Boolean(restaurant.phone) || hasLocation;
 
   return (
     <main dir="rtl" className="relative isolate min-h-screen overflow-x-clip">
@@ -216,7 +214,6 @@ export default async function RestaurantPage({ params }: Props) {
 
         {/* Top and bottom visual gradients */}
         <div className="absolute inset-0 bg-linear-to-b from-black/45 via-black/5 to-black/80" />
-
       </section>
 
       <div className="relative z-50">
@@ -224,7 +221,7 @@ export default async function RestaurantPage({ params }: Props) {
             HERO / LOGO SECTION
             Uses one full viewport height.
         ========================================================== */}
-        <section className="relative flex min-h-[100svh] flex-col items-center justify-center px-5 pb-28 pt-[18svh] text-white">
+        <section className="relative flex min-h-svh flex-col items-center justify-center px-5 pb-28 pt-[18svh] text-white">
           <div className="flex w-full max-w-md flex-col items-center text-center">
             {/* Logo */}
             <div
@@ -258,20 +255,19 @@ export default async function RestaurantPage({ params }: Props) {
                 "rounded-4xl border border-white/35",
                 "bg-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.45)]",
                 "ring-4 ring-white/15 backdrop-blur-md",
-                
               )}
             >
-            {/* Restaurant name */}
-            <h1 className="mt-6 max-w-md text-balance text-4xl font-black tracking-tight text-white drop-shadow-lg sm:text-5xl">
-              {restaurant.name}
-            </h1>
+              {/* Restaurant name */}
+              <h1 className="mt-6 max-w-md text-balance text-4xl font-black tracking-tight text-white drop-shadow-lg sm:text-5xl">
+                {restaurant.name}
+              </h1>
 
-            {/* Description */}
-            {restaurant.description && (
-              <p className="mt-4 max-w-sm text-pretty text-sm leading-7 text-white/80 drop-shadow-sm sm:text-base">
-                {restaurant.description}
-              </p>
-            )}
+              {/* Description */}
+              {restaurant.description && (
+                <p className="mt-4 max-w-sm text-pretty text-sm leading-7 text-white/80 drop-shadow-sm sm:text-base">
+                  {restaurant.description}
+                </p>
+              )}
             </div>
 
             {/* Open / closed state */}
@@ -331,7 +327,7 @@ export default async function RestaurantPage({ params }: Props) {
                 <p className="text-sm font-medium text-brand-light text-center">
                   خوش آمدید
                 </p>
-                <h2 className="mt-1 text-lg font-extrabold text-ui-text text-center">
+                <h2 className="mt-1 text-lg font-extrabold text-brand-light text-center">
                   اطلاعات {restaurant.name}
                 </h2>
               </div>
@@ -369,13 +365,13 @@ export default async function RestaurantPage({ params }: Props) {
 
                           <div className="min-w-0 flex-1 flex items-center justify-between gap-3">
                             <div>
-                            <p className="text-xs font-semibold text-ui-text-muted">
-                              آدرس
-                            </p>
+                              <p className="text-xs font-semibold text-ui-text-muted">
+                                آدرس
+                              </p>
 
-                            <p className="mt-1 text-sm leading-6 text-ui-text">
-                              {restaurant.address}
-                            </p>
+                              <p className="mt-1 text-sm leading-6 text-ui-text">
+                                {restaurant.address}
+                              </p>
                             </div>
 
                             {hasLocation && (
@@ -519,11 +515,11 @@ export default async function RestaurantPage({ params }: Props) {
 
               {/* Working hours card */}
               {hasHours && (
-                  <WorkingHoursAccordion
-                    hours={hours}
-                    todayKey={todayKey}
-                    openNow={openNow}
-                  />
+                <WorkingHoursAccordion
+                  hours={hours}
+                  todayKey={todayKey}
+                  openNow={openNow}
+                />
               )}
 
               {/* Menu CTA */}

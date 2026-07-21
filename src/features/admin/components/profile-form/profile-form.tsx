@@ -365,7 +365,7 @@ export function ProfileForm({ restaurant }: Props) {
             <div className="w-full space-y-1.5">
               <Label>لوگو رستوران</Label>
               <p className="text-xs text-ui-text-muted">
-                لوگو در صفحه منو نمایش داده می‌شود — نسبت ۱:۱ پیشنهاد می‌شود
+                لوگو در صفحه منو نمایش داده می‌شود — نسبت ۱:۱ پیشنهاد می‌شود.
               </p>
               <ImageUploader
                 value={restaurant.logo_url ?? null}
@@ -385,7 +385,7 @@ export function ProfileForm({ restaurant }: Props) {
             <div className="w-full space-y-1.5">
               <Label>تصویر بکگراند</Label>
               <p className="text-xs text-ui-text-muted">
-                تصویر پس‌زمینه صفحه لندینگ
+                تصویر بنر بکگراند صفحه اصلی — نسبت ۱۶:۹ یا ۳:۱ پیشنهاد می‌شود. 
               </p>
               <ImageUploader
                 value={restaurant.banner_url ?? null}
