@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fa" dir="rtl">
+    <html lang="fa" dir="rtl" >
       <body className={vazir.className}>
         {children}
         <Toaster

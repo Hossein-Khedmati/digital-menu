@@ -65,9 +65,9 @@ export default async function MenuPage({ params, searchParams }: Props) {
   const currentParams: Record<string, string | undefined> = { q, sort, cat };
 
   return (
-    <div className="min-h-screen bg-ui-bg">
+    <div className=" bg-ui-bg">
       {/* ── Header ── */}
-      <header className="sticky top-0 z-30 border-b border-ui-border  backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-ui-border backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4">
           <div className="flex items-center gap-3 py-3 justify-between">
             {/* دکمه برگشت */}
@@ -101,7 +101,7 @@ export default async function MenuPage({ params, searchParams }: Props) {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-5 space-y-5">
+      <div className="min-h-[calc(100vh-187px)] mx-auto max-w-7xl px-4 py-5 space-y-5">
         <SearchAndSort />
 
         <CategoryBar

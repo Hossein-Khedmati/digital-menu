@@ -23,6 +23,7 @@
   --color-ui-text: var(--ui-text);
   --color-ui-text-soft: var(--ui-text-soft);
   --color-ui-text-muted: var(--ui-text-muted);
+  --color-ui-bg-landing: var(--ui-bg-landing);
 }
 
 /* ─────────────────────────────────────────
@@ -37,6 +38,7 @@
   --ui-text: #111827;
   --ui-text-soft: #6b7280;
   --ui-text-muted: #9ca3af;
+  --ui-bg-landing: #F8FAFC;
 }
 
 /* ─────────────────────────────────────────
@@ -51,8 +53,11 @@
   --ui-text: #f1f5f9;
   --ui-text-soft: #94a3b8;
   --ui-text-muted: #64748b;
+  --ui-bg-landing: #060608;
 }
-
+html {
+  scroll-behavior: smooth;
+}
 body {
   background-color: var(--ui-bg-soft);
   color: var(--ui-text);

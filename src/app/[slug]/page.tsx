@@ -11,7 +11,6 @@ import {
   IconBrandWhatsapp,
   IconToolsKitchen2,
   IconArrowLeft,
-  IconClock,
   IconChevronRight,
 } from "@tabler/icons-react";
 import { createClient } from "@/lib/supabase/server";
